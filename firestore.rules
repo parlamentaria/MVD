@@ -1,0 +1,58 @@
+rules_version = '2';
+
+// ===================================================================
+//  ПРАВИЛА БЕЗОПАСНОСТИ БАЗЫ ДАННЫХ
+//  Скопируйте ВЕСЬ этот текст в Firebase → Firestore Database → Rules
+//  и замените ВСТАВЬТЕ_СВОЙ_UID на UID своего аккаунта
+//  (Firebase → Authentication → Users → колонка «User UID»).
+// ===================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Администратор — только аккаунт с этим UID
+    function isAdmin() {
+      return request.auth != null && request.auth.uid == 'K1Po8kwbryVycPtycoTPfARNvOu2';
+    }
+
+    // Лекции: все видят опубликованные, изменять может только админ
+    match /lectures/{lectureId} {
+      allow read: if resource.data.published == true || isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Тексты главной страницы и информация об авторе
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Просмотры: посетители могут только ДОБАВИТЬ запись правильного вида.
+    // Читать и удалять статистику может только админ.
+    function validView(d) {
+      return d.keys().hasOnly(['page', 'lectureId', 'hour', 'weekday', 'date', 'device', 'ts'])
+        && d.keys().hasAll(['page', 'lectureId', 'hour', 'weekday', 'date', 'device', 'ts'])
+        && d.page in ['home', 'lecture']
+        && d.lectureId is string && d.lectureId.size() <= 100
+        && d.hour is int && d.hour >= 0 && d.hour <= 23
+        && d.weekday is int && d.weekday >= 0 && d.weekday <= 6
+        && d.date is string && d.date.size() == 10
+        && d.device in ['mobile', 'desktop']
+        && d.ts == request.time;
+    }
+    match /views/{viewId} {
+      allow create: if validView(request.resource.data);
+      allow read, delete: if isAdmin();
+    }
+
+    // Уникальные посетители (анонимный случайный id)
+    match /visitors/{visitorId} {
+      allow create: if visitorId.size() <= 64
+        && request.resource.data.keys().hasOnly(['ts'])
+        && request.resource.data.ts == request.time;
+      allow read, delete: if isAdmin();
+    }
+
+    // Всё остальное запрещено
+  }
+}

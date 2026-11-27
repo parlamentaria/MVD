@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Лекции</title>
+  <meta name="description" content="Курс лекций: конспекты и материалы">
+  <meta name="theme-color" content="#f5f5fa">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400..700;1,7..72,400..700&family=Manrope:wght@400..800&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+  <script>
+    /* Тема и режим чтения применяются сразу, чтобы не было «мигания» */
+    (function () {
+      var h = document.documentElement;
+      try {
+        var t = localStorage.getItem("lec_theme") ||
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        h.dataset.theme = t;
+        if (localStorage.getItem("lec_reading") === "1") h.classList.add("reading");
+        var s = parseFloat(localStorage.getItem("lec_fs"));
+        if (s) h.style.setProperty("--fs-scale", s);
+      } catch (e) { h.dataset.theme = "light"; }
+    })();
+  </script>
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <div class="progress" id="progress"></div>
+  <div class="bg-decor" aria-hidden="true">
+    <div class="bg-grid"></div>
+    <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span>
+  </div>
+
+  <!-- ЛЕВОЕ МЕНЮ С ЛЕКЦИЯМИ -->
+  <aside class="sidebar" id="sidebar" aria-label="Навигация по лекциям">
+    <div class="brand">
+      <a href="#/" class="brand-link">
+        <span class="logo" data-icon="bookOpen"></span>
+        <span class="brand-text"><b id="siteName">Лекции</b><small id="siteTagline"></small></span>
+      </a>
+      <button class="icon-btn close-btn" id="closeNav" aria-label="Закрыть меню" data-icon="x"></button>
+    </div>
+    <label class="search">
+      <span data-icon="search"></span>
+      <input id="search" type="search" placeholder="Поиск лекции…" autocomplete="off" aria-label="Поиск лекции">
+    </label>
+    <nav class="nav" id="nav">
+      <span class="nav-indicator" id="navIndicator"></span>
+      <a class="nav-item" href="#/" data-route="home" style="--i:0"><span class="num" data-icon="home"></span><span class="t">Главная</span></a>
+      <div class="nav-label"><span>Лекции</span><span id="lecCount"></span></div>
+      <div id="navLectures"></div>
+    </nav>
+    <div class="sidebar-foot" id="sidebarFoot"></div>
+  </aside>
+  <div class="overlay" id="overlay"></div>
+
+  <div class="main">
+    <header class="topbar" id="topbar">
+      <button class="icon-btn menu-btn" id="openNav" aria-label="Открыть меню" data-icon="menu"></button>
+      <div class="crumb" id="crumb"></div>
+      <div class="actions">
+        <div class="font-ctrl">
+          <button class="icon-btn txt" id="fontDown" title="Уменьшить текст" aria-label="Уменьшить текст">A−</button>
+          <button class="icon-btn txt" id="fontUp" title="Увеличить текст" aria-label="Увеличить текст">A+</button>
+        </div>
+        <button class="read-btn" id="readBtn" aria-pressed="false" title="Режим чтения (клавиша R)">
+          <span data-icon="bookOpen"></span><span class="lbl">Режим чтения</span><span class="switch"></span>
+        </button>
+        <button class="icon-btn theme-btn" id="themeBtn" aria-label="Светлая / тёмная тема" title="Светлая / тёмная тема">
+          <span class="i-sun" data-icon="sun"></span><span class="i-moon" data-icon="moon"></span>
+        </button>
+      </div>
+    </header>
+
+    <main class="view" id="view" tabindex="-1"></main>
+
+    <!-- ИНФОРМАЦИЯ ОБ АВТОРЕ (внизу каждой страницы) -->
+    <footer class="footer" id="footer"></footer>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    if (location.protocol === "file:") {
+      document.body.insertAdjacentHTML("afterbegin",
+        '<div class="file-warning"><b>Сайт открыт как файл.</b> Так он не работает — откройте его через локальный сервер ' +
+        '(например, расширение Live Server в VS Code) или загрузите на GitHub Pages. Подробнее — в README.md.</div>');
+    }
+  </script>
+</body>
+</html>

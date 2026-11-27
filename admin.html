@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Админ-панель</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#f5f5fa">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400..700;1,7..72,400..700&family=Manrope:wght@400..800&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+  <script>
+    (function () {
+      var h = document.documentElement;
+      try {
+        h.dataset.theme = localStorage.getItem("lec_theme") ||
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      } catch (e) { h.dataset.theme = "light"; }
+    })();
+  </script>
+  <script type="module" src="js/admin.js"></script>
+</head>
+<body class="admin-body">
+  <div class="bg-decor" aria-hidden="true">
+    <div class="bg-grid"></div>
+    <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span>
+  </div>
+
+  <div class="boot" id="boot"><div class="spinner"></div></div>
+
+  <!-- Firebase не настроен -->
+  <section class="screen hidden" id="notConfigured">
+    <div class="login-card">
+      <div class="login-icon" data-icon="alert"></div>
+      <h1>Firebase не подключён</h1>
+      <p class="sub" id="ncText">Чтобы админ-панель заработала, заполните настройки Firebase в файле <code>js/config.js</code>. Пошаговая инструкция — в файле <code>README.md</code>.</p>
+      <a class="btn-primary full" href="./"><span>Вернуться на сайт</span></a>
+    </div>
+  </section>
+
+  <!-- Вход -->
+  <section class="screen hidden" id="login">
+    <form class="login-card" id="loginForm" novalidate>
+      <div class="login-icon" data-icon="lock"></div>
+      <h1>Вход в админ-панель</h1>
+      <p class="sub">Доступ только для администратора</p>
+      <div class="field" id="emailField">
+        <label for="email">Email</label>
+        <input id="email" type="email" autocomplete="username" placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label for="password">Пароль</label>
+        <div class="pw">
+          <input id="password" type="password" autocomplete="current-password" placeholder="••••••••" required>
+          <button type="button" class="pw-eye" id="pwEye" aria-label="Показать пароль" data-icon="eye"></button>
+        </div>
+      </div>
+      <button class="btn-primary full" type="submit" id="loginBtn"><span>Войти</span><span data-icon="arrowRight"></span></button>
+      <p class="login-error" id="loginError" role="alert"></p>
+      <a href="./" class="back-link">← Вернуться на сайт</a>
+    </form>
+  </section>
+
+  <!-- Панель -->
+  <div class="adm hidden" id="app">
+    <header class="adm-top">
+      <a class="adm-brand" href="./" target="_blank" title="Открыть сайт">
+        <span class="logo" data-icon="bookOpen"></span>
+        <span class="brand-text"><b>Админ-панель</b><small id="admSite"></small></span>
+      </a>
+      <nav class="adm-tabs" id="tabs">
+        <span class="tab-pill" id="tabPill"></span>
+        <button class="tab" data-tab="stats"><span data-icon="barChart"></span><span>Статистика</span></button>
+        <button class="tab" data-tab="lectures"><span data-icon="fileText"></span><span>Лекции</span></button>
+        <button class="tab" data-tab="settings"><span data-icon="sliders"></span><span>Главная и автор</span></button>
+      </nav>
+      <div class="adm-actions">
+        <a class="icon-btn" href="./" target="_blank" title="Открыть сайт" aria-label="Открыть сайт" data-icon="arrowUpRight"></a>
+        <button class="icon-btn theme-btn" id="themeBtn" title="Светлая / тёмная тема" aria-label="Сменить тему">
+          <span class="i-sun" data-icon="sun"></span><span class="i-moon" data-icon="moon"></span>
+        </button>
+        <button class="icon-btn" id="logoutBtn" title="Выйти" aria-label="Выйти" data-icon="logout"></button>
+      </div>
+    </header>
+
+    <main class="adm-main">
+      <!-- СТАТИСТИКА -->
+      <section class="panel" data-panel="stats">
+        <div class="panel-head">
+          <div>
+            <h2>Статистика</h2>
+            <p class="muted">Время указано по часовому поясу посетителей. <span id="statsUpdated"></span></p>
+          </div>
+          <button class="btn-ghost" id="refreshStats"><span data-icon="refresh"></span>Обновить</button>
+        </div>
+        <div id="statsBody"></div>
+      </section>
+
+      <!-- ЛЕКЦИИ -->
+      <section class="panel" data-panel="lectures">
+        <div id="lecListView">
+          <div class="panel-head">
+            <div>
+              <h2>Лекции <span class="count" id="lecTotal"></span></h2>
+              <p class="muted">Порядок здесь — это порядок вкладок в меню сайта.</p>
+            </div>
+            <button class="btn-primary sm" id="newLec"><span data-icon="plus"></span><span>Новая лекция</span></button>
+          </div>
+          <div class="card list-card" id="lecList"></div>
+        </div>
+
+        <div id="lecEditView" class="hidden">
+          <div class="ed-top">
+            <button class="btn-ghost" id="edBack"><span data-icon="arrowLeft"></span>К списку</button>
+            <div class="ed-top-r">
+              <span class="save-state" id="saveState"></span>
+              <label class="switch-field" title="Черновики не видны посетителям">
+                <input type="checkbox" id="edPublished" checked><span class="sw"></span><span>Опубликована</span>
+              </label>
+              <button class="btn-primary sm" id="edSaveTop"><span data-icon="save"></span><span>Сохранить</span></button>
+            </div>
+          </div>
+          <div class="card ed-card">
+            <input class="title-input" id="edTitle" placeholder="Название лекции" maxlength="200" autocomplete="off">
+            <div id="edBody"></div>
+          </div>
+          <div class="ed-bottom">
+            <button class="btn-danger-ghost" id="edDelete"><span data-icon="trash"></span>Удалить лекцию</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ГЛАВНАЯ И АВТОР -->
+      <section class="panel" data-panel="settings">
+        <div class="panel-head">
+          <div>
+            <h2>Главная и автор</h2>
+            <p class="muted">Тексты главной страницы и информация об авторе внизу каждой страницы.</p>
+          </div>
+          <button class="btn-primary sm" id="saveSettings"><span data-icon="save"></span><span>Сохранить</span></button>
+        </div>
+        <div class="settings-grid">
+          <div class="card form-card">
+            <h3><span data-icon="home"></span>Главная страница</h3>
+            <div class="field"><label for="sBadge">Надпись над заголовком</label><input id="sBadge" placeholder="Например: Добро пожаловать"></div>
+            <div class="field"><label for="sTitle">Заголовок</label><input id="sTitle"></div>
+            <div class="field"><label>Текст</label><div id="sText"></div></div>
+            <div class="field"><label for="sBtn">Надпись на кнопке</label><input id="sBtn"></div>
+            <p class="hint">Кнопка ведёт на: <code id="sBtnUrl"></code><br>Ссылка меняется в файле <code>js/config.js</code> (параметр <code>homeButtonUrl</code>).</p>
+          </div>
+          <div class="card form-card">
+            <h3><span data-icon="users"></span>Об авторе</h3>
+            <div class="field"><label for="sName">Имя</label><input id="sName"></div>
+            <div class="field"><label for="sRole">Должность / роль</label><input id="sRole"></div>
+            <div class="field"><label for="sPhoto">Ссылка на фото (необязательно)</label><input id="sPhoto" placeholder="https://…"></div>
+            <div class="field"><label for="sBio">Кратко о себе</label><textarea id="sBio" rows="3"></textarea></div>
+            <div class="field">
+              <label for="sContacts">Контакты — каждый с новой строки</label>
+              <textarea id="sContacts" rows="4" placeholder="Email | you@example.com&#10;Telegram | @username&#10;Телефон | +7 900 000-00-00"></textarea>
+              <p class="hint">Формат: <code>Название | ссылка</code>. Можно писать просто email, телефон, @ник в Telegram или адрес сайта.</p>
+            </div>
+            <div class="preview-label">Предпросмотр</div>
+            <div class="footer-preview" id="footerPreview"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Окно подтверждения -->
+  <div class="modal" id="modal" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+      <h3 id="mTitle"></h3>
+      <p id="mText"></p>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="mCancel">Отмена</button>
+        <button class="btn-danger" id="mOk">Удалить</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
